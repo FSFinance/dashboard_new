@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FS Finance — Client Dashboard</title>
+<meta name="description" content="FS Finance strategic advisory dashboard for Summit Custom Homes">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&f[]=cabinet-grotesk@500,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<style>
+/* ============================================
+   FS FINANCE — DESIGN TOKENS
+   Premium advisory palette: deep navy + warm gold
+   ============================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root,[data-theme="light"]{
+  --font-display:'Cabinet Grotesk','Helvetica Neue',sans-serif;
+  --font-body:'General Sans','Helvetica Neue',sans-serif;
+
+  --color-bg:#F5F4F0;
+  --color-surface:#FFFFFF;
+  --color-surface-2:#FAFAF8;
+  --color-surface-offset:#EEECEA;
+  --color-border:rgba(0,0,0,0.08);
+  --color-border-strong:rgba(0,0,0,0.12);
+  --color-divider:rgba(0,0,0,0.06);
+
+  --color-text:#1A1D29;
+  --color-text-secondary:#5A5E6B;
+  --color-text-tertiary:#8E919C;
+  --color-text-inverse:#FFFFFF;
+
+  --color-navy:#1B2541;
+  --color-navy-light:#2A3A5C;
+  --color-navy-muted:#394B6E;
+  --color-gold:#C69B3E;
+  --color-gold-light:#D4B064;
+  --color-gold-bg:rgba(198,155,62,0.08);
+
+  --color-success:#2D8A4E;
+  --color-success-bg:rgba(45,138,78,0.08);
+  --color-success-light:#E8F5ED;
+  --color-warning:#B8860B;
+  --color-warning-bg:rgba(184,134,11,0.08);
+  --color-warning-light:#FFF8E7;
+  --color-error:#C0392B;
+  --color-error-bg:rgba(192,57,43,0.08);
+  --color-error-light:#FDECEB;
+
+  --color-chart-1:#1B2541;
+  --color-chart-2:#C69B3E;
+  --color-chart-3:#5B7BA5;
+  --color-chart-4:#8FA5C4;
+  --color-chart-5:#394B6E;
+
+  --radius-sm:6px;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --radius-xl:16px;
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.04),0 1px 2px rgba(0,0,0,0.03);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.06),0 2px 4px rgba(0,0,0,0.03);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.08);
+
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;--space-16:64px;
+
+  --transition-fast:150ms cubic-bezier(0.16,1,0.3,1);
+  --transition-med:250ms cubic-bezier(0.16,1,0.3,1);
+}
+
+html{
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  scroll-behavior:smooth;
+}
+body{
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.55;
+  color:var(--color-text);
+  background:var(--color-bg);
+  min-height:100vh;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+.page-header{
+  background:var(--color-navy);
+  color:var(--color-text-inverse);
+  padding:var(--space-5) var(--space-8);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.page-header .logo{
+  display:flex;align-items:center;gap:var(--space-3);
+}
+.page-header .logo svg{
+  width:32px;height:32px;flex-shrink:0;
+}
+.page-header .logo-text{
+  font-family:var(--font-display);
+  font-weight:700;font-size:18px;letter-spacing:-0.02em;
+}
+.page-header .logo-text span{
+  color:var(--color-gold);
+}
+.header-meta{
+  display:flex;align-items:center;gap:var(--space-6);
+  font-size:13px;opacity:0.7;
+}
+.header-meta strong{opacity:1;font-weight:600;}
+
+.dashboard{
+  max-width:1340px;
+  margin:0 auto;
+  padding:var(--space-6) var(--space-8) var(--space-12);
+}
+
+/* ============================================
+   HEALTH BANNER
+   ============================================ */
+.health-banner{
+  background:var(--color-surface);
+  border-radius:var(--radius-lg);
+  padding:var(--space-6) var(--space-8);
+  box-shadow:var(--shadow-sm);
+  margin-bottom:var(--space-6);
+  display:flex;align-items:center;gap:var(--space-8);
+  border:1px solid var(--color-border);
+}
+.health-score{
+  display:flex;flex-direction:column;align-items:center;gap:var(--space-2);
+  flex-shrink:0;
+}
+.score-ring{
+  width:88px;height:88px;position:relative;
+}
+.score-ring svg{width:88px;height:88px;transform:rotate(-90deg);}
+.score-ring .bg{fill:none;stroke:var(--color-surface-offset);stroke-width:6;}
+.score-ring .fg{fill:none;stroke:var(--color-success);stroke-width:6;stroke-linecap:round;
+  stroke-dasharray:251;stroke-dashoffset:38;transition:stroke-dashoffset 1.2s ease;}
+.score-value{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--color-navy);
+}
+.score-label{
+  font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--color-text-secondary);
+}
+.health-detail{flex:1;}
+.health-detail h2{
+  font-family:var(--font-display);font-weight:700;font-size:18px;
+  color:var(--color-navy);margin-bottom:var(--space-1);
+}
+.health-detail p{
+  font-size:14px;color:var(--color-text-secondary);line-height:1.55;max-width:72ch;
+}
+.health-drivers{
+  display:flex;gap:var(--space-4);margin-top:var(--space-4);flex-wrap:wrap;
+}
+.health-driver{
+  display:flex;align-items:center;gap:var(--space-2);
+  font-size:13px;color:var(--color-text-secondary);
+}
+.driver-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+}
+.driver-dot.good{background:var(--color-success);}
+.driver-dot.warn{background:var(--color-warning);}
+.driver-dot.bad{background:var(--color-error);}
+
+/* ============================================
+   KPI ROW
+   ============================================ */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:var(--space-4);
+  margin-bottom:var(--space-8);
+}
+.kpi-card{
+  background:var(--color-surface);
+  border-radius:var(--radius-lg);
+  padding:var(--space-5) var(--space-5) var(--space-4);
+  box-shadow:var(--shadow-sm);
+  border:1px solid var(--color-border);
+  transition:box-shadow var(--transition-fast);
+}
+.kpi-card:hover{box-shadow:var(--shadow-md);}
+.kpi-label{
+  font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;
+  color:var(--color-text-tertiary);margin-bottom:var(--space-2);
+}
+.kpi-value{
+  font-family:var(--font-display);
+  font-weight:700;font-size:26px;letter-spacing:-0.02em;
+  color:var(--color-navy);
+  font-variant-numeric:tabular-nums lining-nums;
+}
+.kpi-delta{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:12px;font-weight:600;margin-top:var(--space-1);
+  padding:2px 8px;border-radius:var(--radius-sm);
+}
+.kpi-delta.up{color:var(--color-success);background:var(--color-success-bg);}
+.kpi-delta.down{color:var(--color-error);background:var(--color-error-bg);}
+.kpi-delta.flat{color:var(--color-warning);background:var(--color-warning-bg);}
+.kpi-sub{font-size:12px;color:var(--color-text-tertiary);margin-top:var(--space-1);}
+.kpi-outlook{
+  display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2);
+}
+.outlook-bar{
+  flex:1;height:6px;border-radius:3px;background:var(--color-surface-offset);overflow:hidden;
+}
+.outlook-fill{
+  height:100%;border-radius:3px;background:linear-gradient(90deg,var(--color-success),var(--color-gold));
+  transition:width 0.8s ease;
+}
+.outlook-label{font-size:12px;font-weight:600;color:var(--color-success);}
+
+/* ============================================
+   SECTION LAYOUT
+   ============================================ */
+.section-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:var(--space-6);
+  margin-bottom:var(--space-6);
+}
+.section-full{
+  grid-column:1/-1;
+}
+.card{
+  background:var(--color-surface);
+  border-radius:var(--radius-lg);
+  padding:var(--space-6);
+  box-shadow:var(--shadow-sm);
+  border:1px solid var(--color-border);
+}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:var(--space-5);
+}
+.card-title{
+  font-family:var(--font-display);
+  font-weight:700;font-size:16px;
+  color:var(--color-navy);
+}
+.card-subtitle{
+  font-size:13px;color:var(--color-text-tertiary);
+}
+.time-toggle{
+  display:flex;
+  background:var(--color-surface-offset);
+  border-radius:var(--radius-sm);
+  padding:2px;
+}
+.time-toggle button{
+  background:none;border:none;cursor:pointer;
+  font-family:var(--font-body);font-size:12px;font-weight:500;
+  padding:4px 12px;border-radius:4px;
+  color:var(--color-text-tertiary);
+  transition:all var(--transition-fast);
+}
+.time-toggle button.active{
+  background:var(--color-surface);color:var(--color-navy);
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);font-weight:600;
+}
+
+/* chart containers */
+.chart-wrap{position:relative;width:100%;}
+.chart-wrap.trend{height:280px;}
+.chart-wrap.cashflow{height:280px;}
+.chart-wrap.spending{height:240px;}
+
+/* ============================================
+   SPENDING ANALYSIS
+   ============================================ */
+.spend-item{
+  display:flex;align-items:center;gap:var(--space-4);
+  padding:var(--space-3) 0;
+  border-bottom:1px solid var(--color-divider);
+}
+.spend-item:last-child{border-bottom:none;}
+.spend-icon{
+  width:36px;height:36px;border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.spend-info{flex:1;min-width:0;}
+.spend-name{font-size:14px;font-weight:600;color:var(--color-text);}
+.spend-detail{font-size:12px;color:var(--color-text-tertiary);}
+.spend-amount{
+  font-family:var(--font-display);font-weight:700;font-size:15px;
+  text-align:right;color:var(--color-navy);
+  font-variant-numeric:tabular-nums lining-nums;
+}
+.spend-status{
+  font-size:11px;font-weight:600;padding:2px 8px;
+  border-radius:var(--radius-sm);text-align:right;
+}
+.spend-status.over{color:var(--color-error);background:var(--color-error-bg);}
+.spend-status.ok{color:var(--color-success);background:var(--color-success-bg);}
+.spend-status.watch{color:var(--color-warning);background:var(--color-warning-bg);}
+.spend-bar-wrap{
+  width:100%;height:4px;background:var(--color-surface-offset);
+  border-radius:2px;margin-top:4px;overflow:hidden;
+}
+.spend-bar{height:100%;border-radius:2px;transition:width 0.6s ease;}
+
+/* ============================================
+   EXPANSION READINESS
+   ============================================ */
+.expand-metric{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:var(--space-3) 0;
+  border-bottom:1px solid var(--color-divider);
+}
+.expand-metric:last-child{border-bottom:none;}
+.expand-label{font-size:14px;color:var(--color-text-secondary);}
+.expand-value{
+  display:flex;align-items:center;gap:var(--space-2);
+  font-size:14px;font-weight:600;
+}
+.expand-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:var(--radius-sm);
+  font-size:12px;font-weight:600;
+}
+.expand-badge.yes{color:var(--color-success);background:var(--color-success-bg);}
+.expand-badge.caution{color:var(--color-warning);background:var(--color-warning-bg);}
+.expand-badge.no{color:var(--color-error);background:var(--color-error-bg);}
+.expand-summary{
+  margin-top:var(--space-5);padding:var(--space-4);
+  background:var(--color-gold-bg);border-radius:var(--radius-md);
+  font-size:13px;color:var(--color-text-secondary);line-height:1.6;
+}
+.expand-summary strong{color:var(--color-navy);}
+
+/* ============================================
+   PROJECT CARDS
+   ============================================ */
+.projects-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:var(--space-4);
+}
+.project-card{
+  background:var(--color-surface);
+  border-radius:var(--radius-lg);
+  padding:var(--space-5);
+  box-shadow:var(--shadow-sm);
+  border:1px solid var(--color-border);
+  transition:box-shadow var(--transition-fast),transform var(--transition-fast);
+  cursor:default;
+}
+.project-card:hover{
+  box-shadow:var(--shadow-md);
+  transform:translateY(-1px);
+}
+.project-top{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:var(--space-3);
+}
+.project-name{
+  font-family:var(--font-display);font-weight:700;font-size:15px;
+  color:var(--color-navy);
+}
+.project-stage{
+  font-size:11px;font-weight:600;padding:2px 8px;
+  border-radius:var(--radius-sm);
+  text-transform:uppercase;letter-spacing:0.04em;
+  white-space:nowrap;
+}
+.project-stage.framing{background:#E8F0FE;color:#1A56DB;}
+.project-stage.foundation{background:#FFF3CD;color:#856404;}
+.project-stage.finishing{background:#E8F5ED;color:#2D8A4E;}
+.project-stage.rough-in{background:#F3E8FF;color:#6B21A8;}
+
+.project-status{
+  display:flex;align-items:center;gap:var(--space-2);
+  font-size:12px;font-weight:600;
+  margin-bottom:var(--space-4);
+}
+.status-dot{width:7px;height:7px;border-radius:50%;}
+.status-dot.on-track{background:var(--color-success);}
+.status-dot.at-risk{background:var(--color-warning);}
+.status-dot.over-budget{background:var(--color-error);}
+
+.project-metrics{
+  display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3) var(--space-4);
+}
+.project-metric-label{
+  font-size:11px;font-weight:500;color:var(--color-text-tertiary);
+  text-transform:uppercase;letter-spacing:0.04em;
+}
+.project-metric-value{
+  font-family:var(--font-display);font-weight:700;font-size:14px;
+  color:var(--color-text);margin-top:2px;
+  font-variant-numeric:tabular-nums lining-nums;
+}
+.project-bar{
+  margin-top:var(--space-3);
+  grid-column:1/-1;
+}
+.project-bar-label{
+  display:flex;justify-content:space-between;
+  font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px;
+}
+.project-bar-track{
+  height:6px;background:var(--color-surface-offset);border-radius:3px;overflow:hidden;
+}
+.project-bar-fill{
+  height:100%;border-radius:3px;transition:width 0.8s ease;
+}
+
+/* ============================================
+   SCENARIO PLANNING
+   ============================================ */
+.scenarios-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:var(--space-5);
+}
+.scenario-card{
+  background:var(--color-surface);
+  border-radius:var(--radius-lg);
+  padding:var(--space-6);
+  box-shadow:var(--shadow-sm);
+  border:1px solid var(--color-border);
+  transition:box-shadow var(--transition-fast);
+}
+.scenario-card:hover{box-shadow:var(--shadow-md);}
+.scenario-icon{
+  width:44px;height:44px;border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;margin-bottom:var(--space-4);
+  background:var(--color-surface-offset);
+}
+.scenario-title{
+  font-family:var(--font-display);font-weight:700;font-size:16px;
+  color:var(--color-navy);margin-bottom:var(--space-1);
+}
+.scenario-desc{
+  font-size:13px;color:var(--color-text-tertiary);margin-bottom:var(--space-4);
+}
+.scenario-rec{
+  display:flex;align-items:center;gap:var(--space-2);
+  padding:var(--space-3) var(--space-4);
+  border-radius:var(--radius-md);
+  margin-bottom:var(--space-4);
+  font-size:14px;font-weight:600;
+}
+.scenario-rec.yes{background:var(--color-success-light);color:var(--color-success);}
+.scenario-rec.caution{background:var(--color-warning-light);color:var(--color-warning);}
+.scenario-rec.no{background:var(--color-error-light);color:var(--color-error);}
+.scenario-rec .rec-icon{font-size:18px;}
+
+.scenario-details{
+  display:flex;flex-direction:column;gap:var(--space-3);
+}
+.scenario-detail{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;
+}
+.scenario-detail-label{color:var(--color-text-secondary);}
+.scenario-detail-value{
+  font-weight:600;color:var(--color-text);
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+.scenario-toggle{
+  margin-top:var(--space-4);
+  display:flex;align-items:center;gap:var(--space-3);
+}
+.toggle-switch{
+  position:relative;width:44px;height:24px;
+  background:var(--color-surface-offset);border:1px solid var(--color-border-strong);
+  border-radius:12px;cursor:pointer;
+  transition:all var(--transition-fast);
+  flex-shrink:0;
+}
+.toggle-switch.active{
+  background:var(--color-navy);border-color:var(--color-navy);
+}
+.toggle-switch::after{
+  content:'';position:absolute;
+  top:2px;left:2px;width:18px;height:18px;
+  background:#fff;border-radius:50%;
+  box-shadow:0 1px 3px rgba(0,0,0,0.15);
+  transition:transform var(--transition-fast);
+}
+.toggle-switch.active::after{transform:translateX(20px);}
+.toggle-label{font-size:13px;color:var(--color-text-secondary);font-weight:500;}
+
+.scenario-impact{
+  margin-top:var(--space-4);padding-top:var(--space-4);
+  border-top:1px solid var(--color-divider);
+  opacity:0;max-height:0;overflow:hidden;
+  transition:opacity 0.3s ease,max-height 0.4s ease;
+}
+.scenario-impact.visible{opacity:1;max-height:200px;}
+.impact-title{
+  font-size:12px;font-weight:600;text-transform:uppercase;
+  letter-spacing:0.05em;color:var(--color-text-tertiary);
+  margin-bottom:var(--space-2);
+}
+.impact-bar-wrap{
+  display:flex;align-items:center;gap:var(--space-3);
+}
+.impact-bar{
+  flex:1;height:8px;background:var(--color-surface-offset);
+  border-radius:4px;overflow:hidden;
+}
+.impact-bar-fill{
+  height:100%;border-radius:4px;transition:width 0.6s ease;
+}
+.impact-value{
+  font-family:var(--font-display);font-weight:700;font-size:14px;
+  min-width:64px;text-align:right;
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* ============================================
+   FOOTER / ASSUMPTIONS
+   ============================================ */
+.dashboard-footer{
+  margin-top:var(--space-8);
+  padding-top:var(--space-6);
+  border-top:1px solid var(--color-border);
+}
+.footer-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-8);
+}
+.footer-section h3{
+  font-family:var(--font-display);font-weight:700;font-size:14px;
+  color:var(--color-navy);margin-bottom:var(--space-3);
+}
+.footer-section p,.footer-section li{
+  font-size:13px;color:var(--color-text-secondary);line-height:1.6;
+}
+.footer-section ul{
+  list-style:none;padding:0;
+}
+.footer-section li{
+  padding:2px 0;
+  padding-left:14px;
+  position:relative;
+}
+.footer-section li::before{
+  content:'';position:absolute;left:0;top:9px;
+  width:5px;height:5px;border-radius:50%;
+  background:var(--color-gold);
+}
+.fs-brand{
+  margin-top:var(--space-8);
+  text-align:center;
+  font-size:12px;color:var(--color-text-tertiary);
+  padding-bottom:var(--space-6);
+}
+.fs-brand strong{color:var(--color-navy);}
+
+/* ============================================
+   SECTION HEADERS
+   ============================================ */
+.section-header{
+  margin-bottom:var(--space-5);
+  display:flex;align-items:baseline;gap:var(--space-3);
+}
+.section-title{
+  font-family:var(--font-display);font-weight:700;font-size:18px;
+  color:var(--color-navy);
+}
+.section-description{
+  font-size:13px;color:var(--color-text-tertiary);
+}
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+.custom-tooltip{
+  background:var(--color-navy);color:#fff;
+  padding:var(--space-3) var(--space-4);
+  border-radius:var(--radius-md);
+  font-size:13px;font-family:var(--font-body);
+  box-shadow:var(--shadow-lg);
+  pointer-events:none;
+}
+.custom-tooltip .tooltip-label{
+  font-size:11px;opacity:0.7;margin-bottom:2px;
+}
+.custom-tooltip .tooltip-value{
+  font-family:var(--font-display);font-weight:700;font-size:16px;
+}
+
+/* ============================================
+   RESPONSIVE (Secondary — desktop-first)
+   ============================================ */
+@media(max-width:1200px){
+  .projects-grid{grid-template-columns:repeat(2,1fr);}
+  .kpi-row{grid-template-columns:repeat(3,1fr);}
+}
+@media(max-width:900px){
+  .section-grid{grid-template-columns:1fr;}
+  .scenarios-grid{grid-template-columns:1fr;}
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .projects-grid{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr;}
+  .health-banner{flex-direction:column;text-align:center;}
+  .health-drivers{justify-content:center;}
+  .dashboard{padding:var(--space-4) var(--space-4) var(--space-8);}
+}
+</style>
+</head>
+<body>
+
+<!-- ==========================================
+     HEADER
+     ========================================== -->
+<header class="page-header">
+  <div class="logo">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="FS Finance logo">
+      <rect x="2" y="4" width="12" height="24" rx="2" fill="#C69B3E"/>
+      <rect x="18" y="8" width="12" height="20" rx="2" fill="rgba(255,255,255,0.35)"/>
+      <rect x="18" y="4" width="12" height="4" rx="1" fill="#fff"/>
+    </svg>
+    <div class="logo-text">FS <span>Finance</span></div>
+  </div>
+  <div class="header-meta">
+    <span>Prepared for <strong>Summit Custom Homes</strong></span>
+    <span>April 2026</span>
+  </div>
+</header>
+
+<div class="dashboard">
+
+<!-- ==========================================
+     HEALTH BANNER
+     ========================================== -->
+<section class="health-banner" aria-label="Business health overview">
+  <div class="health-score">
+    <div class="score-ring">
+      <svg viewBox="0 0 88 88">
+        <circle class="bg" cx="44" cy="44" r="40"/>
+        <circle class="fg" cx="44" cy="44" r="40"/>
+      </svg>
+      <div class="score-value">85</div>
+    </div>
+    <div class="score-label">Health Score</div>
+  </div>
+  <div class="health-detail">
+    <h2>Strong Position with Room to Optimize</h2>
+    <p>Summit Custom Homes is profitable and growing, but rising material costs on two active projects are squeezing margins. Cash reserves are healthy for now — the next 90 days will determine whether current project timing supports a summer expansion.</p>
+    <div class="health-drivers">
+      <div class="health-driver"><span class="driver-dot good"></span> Cash position: Strong</div>
+      <div class="health-driver"><span class="driver-dot good"></span> Revenue trend: Growing</div>
+      <div class="health-driver"><span class="driver-dot warn"></span> Margin pressure: Moderate</div>
+      <div class="health-driver"><span class="driver-dot good"></span> Project pipeline: Healthy</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     KPI ROW
+     ========================================== -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">Revenue (YTD)</div>
+    <div class="kpi-value">$2.87M</div>
+    <div class="kpi-delta up">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2L10 7H2L6 2Z" fill="currentColor"/></svg>
+      12.4% vs prior year
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Gross Profit</div>
+    <div class="kpi-value">$718K</div>
+    <div class="kpi-delta up">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2L10 7H2L6 2Z" fill="currentColor"/></svg>
+      25.0% margin
+    </div>
+    <div class="kpi-sub">Down from 27.2% last year</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Net Profit</div>
+    <div class="kpi-value">$243K</div>
+    <div class="kpi-delta up">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2L10 7H2L6 2Z" fill="currentColor"/></svg>
+      8.5% net margin
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Cash on Hand</div>
+    <div class="kpi-value">$412K</div>
+    <div class="kpi-delta flat">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="2" y="5" width="8" height="2" rx="1" fill="currentColor"/></svg>
+      Stable
+    </div>
+    <div class="kpi-sub">3.1 months of operating expenses</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">6-Month Cash Outlook</div>
+    <div class="kpi-value" style="color:var(--color-success);">Positive</div>
+    <div class="kpi-outlook">
+      <div class="outlook-bar"><div class="outlook-fill" style="width:72%"></div></div>
+      <span class="outlook-label">+$148K</span>
+    </div>
+    <div class="kpi-sub">Projected ending cash: $560K</div>
+  </div>
+</div>
+
+<!-- ==========================================
+     GROWTH & SPENDING ROW
+     ========================================== -->
+<div class="section-grid">
+  <!-- Growth Trends -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Growth and Performance</div>
+        <div class="card-subtitle">Monthly revenue and gross margin trend</div>
+      </div>
+      <div class="time-toggle" data-chart="trend">
+        <button class="active" data-range="12">12M</button>
+        <button data-range="6">6M</button>
+      </div>
+    </div>
+    <div class="chart-wrap trend">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Spending Analysis -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Spending Analysis</div>
+        <div class="card-subtitle">Where your money goes — and where it may be wasted</div>
+      </div>
+    </div>
+    <div class="spend-items">
+      <div class="spend-item">
+        <div class="spend-icon" style="background:var(--color-surface-offset);">🏗️</div>
+        <div class="spend-info">
+          <div class="spend-name">Materials and Supplies</div>
+          <div class="spend-detail">$1.42M spent — $1.35M budgeted</div>
+          <div class="spend-bar-wrap"><div class="spend-bar" style="width:105%;background:var(--color-error);"></div></div>
+        </div>
+        <div>
+          <div class="spend-amount">$1.42M</div>
+          <div class="spend-status over">5% over</div>
+        </div>
+      </div>
+      <div class="spend-item">
+        <div class="spend-icon" style="background:var(--color-surface-offset);">👷</div>
+        <div class="spend-info">
+          <div class="spend-name">Labor and Subcontractors</div>
+          <div class="spend-detail">$814K spent — $840K budgeted</div>
+          <div class="spend-bar-wrap"><div class="spend-bar" style="width:97%;background:var(--color-success);"></div></div>
+        </div>
+        <div>
+          <div class="spend-amount">$814K</div>
+          <div class="spend-status ok">On track</div>
+        </div>
+      </div>
+      <div class="spend-item">
+        <div class="spend-icon" style="background:var(--color-surface-offset);">🚛</div>
+        <div class="spend-info">
+          <div class="spend-name">Equipment and Vehicles</div>
+          <div class="spend-detail">$127K spent — $110K budgeted</div>
+          <div class="spend-bar-wrap"><div class="spend-bar" style="width:115%;background:var(--color-warning);"></div></div>
+        </div>
+        <div>
+          <div class="spend-amount">$127K</div>
+          <div class="spend-status watch">15% over</div>
+        </div>
+      </div>
+      <div class="spend-item">
+        <div class="spend-icon" style="background:var(--color-surface-offset);">📋</div>
+        <div class="spend-info">
+          <div class="spend-name">Insurance, Permits, Overhead</div>
+          <div class="spend-detail">$189K spent — $195K budgeted</div>
+          <div class="spend-bar-wrap"><div class="spend-bar" style="width:97%;background:var(--color-success);"></div></div>
+        </div>
+        <div>
+          <div class="spend-amount">$189K</div>
+          <div class="spend-status ok">On track</div>
+        </div>
+      </div>
+      <div class="spend-item">
+        <div class="spend-icon" style="background:var(--color-surface-offset);">💰</div>
+        <div class="spend-info">
+          <div class="spend-name">Owner Draw</div>
+          <div class="spend-detail">$180K drawn — typically $150K at this point</div>
+          <div class="spend-bar-wrap"><div class="spend-bar" style="width:120%;background:var(--color-warning);"></div></div>
+        </div>
+        <div>
+          <div class="spend-amount">$180K</div>
+          <div class="spend-status watch">Above pace</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     EXPANSION & CASH FLOW ROW
+     ========================================== -->
+<div class="section-grid">
+  <!-- Expansion Readiness -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Expansion Readiness</div>
+        <div class="card-subtitle">Can you take on more work right now?</div>
+      </div>
+    </div>
+    <div class="expand-metrics">
+      <div class="expand-metric">
+        <span class="expand-label">Cash runway if revenue paused</span>
+        <span class="expand-value"><span class="expand-badge yes">3.1 months</span></span>
+      </div>
+      <div class="expand-metric">
+        <span class="expand-label">Current project utilization</span>
+        <span class="expand-value"><span class="expand-badge caution">87%</span></span>
+      </div>
+      <div class="expand-metric">
+        <span class="expand-label">Average gross margin (trailing 6 months)</span>
+        <span class="expand-value"><span class="expand-badge caution">25.0%</span></span>
+      </div>
+      <div class="expand-metric">
+        <span class="expand-label">Debt-to-equity ratio</span>
+        <span class="expand-value"><span class="expand-badge yes">0.4x</span></span>
+      </div>
+      <div class="expand-metric">
+        <span class="expand-label">Backlog (signed contracts not started)</span>
+        <span class="expand-value"><span class="expand-badge yes">$1.2M</span></span>
+      </div>
+    </div>
+    <div class="expand-summary">
+      <strong>FS Finance Assessment:</strong> Summit is in a reasonable position to take on one additional project in Q3, provided materials costs stabilize and at least one current project reaches its final draw by June. Taking on two new projects simultaneously would stretch cash reserves below the recommended 2.5-month safety margin.
+    </div>
+  </div>
+
+  <!-- Cash Flow Projection -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">6-Month Cash Flow Projection</div>
+        <div class="card-subtitle">Forward-looking view based on current commitments</div>
+      </div>
+    </div>
+    <div class="chart-wrap cashflow">
+      <canvas id="cashflowChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     ACTIVE PROJECTS
+     ========================================== -->
+<section style="margin-bottom:var(--space-8);">
+  <div class="section-header">
+    <h2 class="section-title">Active Projects</h2>
+    <span class="section-description">4 jobs in progress — supporting context for company-level performance</span>
+  </div>
+  <div class="projects-grid">
+
+    <div class="project-card">
+      <div class="project-top">
+        <div class="project-name">Westfield Estate</div>
+        <span class="project-stage finishing">Finishing</span>
+      </div>
+      <div class="project-status"><span class="status-dot on-track"></span> On Track</div>
+      <div class="project-metrics">
+        <div><div class="project-metric-label">Budget</div><div class="project-metric-value">$820K</div></div>
+        <div><div class="project-metric-label">Actual</div><div class="project-metric-value">$791K</div></div>
+        <div><div class="project-metric-label">Gross Margin</div><div class="project-metric-value" style="color:var(--color-success);">27.8%</div></div>
+        <div><div class="project-metric-label">Collected</div><div class="project-metric-value">$745K</div></div>
+        <div class="project-bar">
+          <div class="project-bar-label"><span>Budget used</span><span>96%</span></div>
+          <div class="project-bar-track"><div class="project-bar-fill" style="width:96%;background:var(--color-success);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-top">
+        <div class="project-name">Lakeview Modern</div>
+        <span class="project-stage framing">Framing</span>
+      </div>
+      <div class="project-status"><span class="status-dot at-risk"></span> At Risk — Material Costs</div>
+      <div class="project-metrics">
+        <div><div class="project-metric-label">Budget</div><div class="project-metric-value">$940K</div></div>
+        <div><div class="project-metric-label">Actual</div><div class="project-metric-value">$412K</div></div>
+        <div><div class="project-metric-label">Gross Margin</div><div class="project-metric-value" style="color:var(--color-warning);">22.1%</div></div>
+        <div><div class="project-metric-label">Collected</div><div class="project-metric-value">$355K</div></div>
+        <div class="project-bar">
+          <div class="project-bar-label"><span>Budget used</span><span>44%</span></div>
+          <div class="project-bar-track"><div class="project-bar-fill" style="width:44%;background:var(--color-warning);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-top">
+        <div class="project-name">Cedar Ridge Build</div>
+        <span class="project-stage rough-in">Rough-In</span>
+      </div>
+      <div class="project-status"><span class="status-dot at-risk"></span> Watch — Subcontractor Delays</div>
+      <div class="project-metrics">
+        <div><div class="project-metric-label">Budget</div><div class="project-metric-value">$685K</div></div>
+        <div><div class="project-metric-label">Actual</div><div class="project-metric-value">$338K</div></div>
+        <div><div class="project-metric-label">Gross Margin</div><div class="project-metric-value" style="color:var(--color-warning);">24.3%</div></div>
+        <div><div class="project-metric-label">Collected</div><div class="project-metric-value">$310K</div></div>
+        <div class="project-bar">
+          <div class="project-bar-label"><span>Budget used</span><span>49%</span></div>
+          <div class="project-bar-track"><div class="project-bar-fill" style="width:49%;background:var(--color-gold);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-top">
+        <div class="project-name">Oakmont Residence</div>
+        <span class="project-stage foundation">Foundation</span>
+      </div>
+      <div class="project-status"><span class="status-dot on-track"></span> On Track</div>
+      <div class="project-metrics">
+        <div><div class="project-metric-label">Budget</div><div class="project-metric-value">$1.1M</div></div>
+        <div><div class="project-metric-label">Actual</div><div class="project-metric-value">$165K</div></div>
+        <div><div class="project-metric-label">Gross Margin</div><div class="project-metric-value" style="color:var(--color-success);">26.5%</div></div>
+        <div><div class="project-metric-label">Collected</div><div class="project-metric-value">$220K</div></div>
+        <div class="project-bar">
+          <div class="project-bar-label"><span>Budget used</span><span>15%</span></div>
+          <div class="project-bar-track"><div class="project-bar-fill" style="width:15%;background:var(--color-success);"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SCENARIO PLANNING
+     ========================================== -->
+<section style="margin-bottom:var(--space-8);">
+  <div class="section-header">
+    <h2 class="section-title">What-If Scenarios</h2>
+    <span class="section-description">Toggle each scenario to see its impact on your forward outlook</span>
+  </div>
+  <div class="scenarios-grid">
+
+    <!-- Scenario 1: New Truck -->
+    <div class="scenario-card" data-scenario="truck">
+      <div class="scenario-icon">🚛</div>
+      <div class="scenario-title">Buy a New Truck</div>
+      <div class="scenario-desc">F-350 work truck — $62,000 financed over 48 months</div>
+      <div class="scenario-rec caution">
+        <span class="rec-icon">⚠️</span>
+        Caution — Timing matters
+      </div>
+      <div class="scenario-details">
+        <div class="scenario-detail">
+          <span class="scenario-detail-label">Monthly payment</span>
+          <span class="scenario-detail-value">$1,420/mo</span>
+        </div>
+        <div class="scenario-detail">
+          <span class="scenario-detail-label">Annual cost (with insurance)</span>
+          <span class="scenario-detail-value">$19,800</span>
+        </div>
+        <div class="scenario-detail">
+          <span class="scenario-detail-label">Cash impact (6 months)</span>
+          <span class="scenario-detail-value" style="color:var(--color-error);">−$9,900</span>
+        </div>
+      </div>
+      <div class="scenario-toggle">
+        <div class="toggle-switch" data-toggle="truck" tabindex="0" role="switch" aria-checked="false" aria-label="Toggle truck scenario"></div>
+        <span class="toggle-label">Show impact on outlook</span>
+      </div>
+      <div class="scenario-impact" id="impact-truck">
+        <div class="impact-title">6-Month Cash Impact</div>
+        <div class="impact-bar-wrap">
+          <div class="impact-bar"><div class="impact-bar-fill" style="width:70%;background:var(--color-warning);"></div></div>
+          <div class="impact-value" style="color:var(--color-warning);">$138K</div>
+        </div>
+        <p style="font-size:12px;color:var(--color-text-tertiary);margin-top:var(--space-2);">Projected ending cash drops from $560K to $550K. Manageable, but delays this expense until after the Westfield final draw for a safer cushion.</p>
+      </div>
+    </div>
+
+    <!-- Scenario 2: Hire PM -->
+    <div class="scenario-card" data-scenario="hire">
+      <div class="scenario-icon">👤</div>
+      <div class="scenario-title">Hire a Project Manager</div>
+      <div class="scenario-desc">Full-time PM at $85,000/year + benefits</div>
+      <div class="scenario-rec yes">
+        <span class="rec-icon">✓</span>
+        Yes — High-leverage hire
+      </div>
+      <div class="scenario-details">
+        <div class="scenario-detail">
+          <span class="scenario-detail-label">Loaded monthly cost</span>
+          <span class="scenario-detail-value">$9,200/mo</span>
+        </div>
+        <div class="scenario-detail">
+          <span class="scenario-detail-label">Cash impact (6 months)</span>
+          <span class="scenario-detail-value" style="color:var(--color-error);">−$55,200</span>
+        </div>
+        <div class="scenario-detail">
+          <span class="scenario-detail-label">Estimated capacity gain</span>
+          <span class="scenario-detail-value" style="color:var(--color-success);">+1-2 projects</span>
+        </div>
+      </div>
+      <div class="scenario-toggle">
+        <div class="toggle-switch" data-toggle="hire" tabindex="0" role="switch" aria-checked="false" aria-label="Toggle hiring scenario"></div>
+        <span class="toggle-label">Show impact on outlook</span>
+      </div>
+      <div class="scenario-impact" id="impact-hire">
+        <div class="impact-title">6-Month Cash Impact</div>
+        <div class="impact-bar-wrap">
+          <div class="impact-bar"><div class="impact-bar-fill" style="width:58%;background:var(--color-success);"></div></div>
+          <div class="impact-value" style="color:var(--color-success);">$93K</div>
+        </div>
+        <p style="font-size:12px;color:var(--color-text-tertiary);margin-top:var(--space-2);">Short-term cash dip, but frees owner time and enables taking on the $1.2M backlog sooner. Net positive within 4-5 months if one new project starts.</p>
+      </div>
+    </div>
+
+    <!-- Scenario 3: Owner Draw -->
+    <div class="scenario-card" data-scenario="draw">
+      <div class="scenario-icon">💵</div>
+      <div class="scenario-title">Increase Owner Draw</div>
+      <div class="scenario-desc">Raise monthly draw from $15K to $20K (+$5K/month)</div>
+      <div class="scenario-rec no">
+        <span class="rec-icon">✗</span>
+        Not recommended now
+      </div>
+      <div class="scenario-details">
+        <div class="scenario-detail">
+          <span class="scenario-detail-label">Additional monthly cost</span>
+          <span class="scenario-detail-value">$5,000/mo</span>
+        </div>
+        <div class="scenario-detail">
+          <span class="scenario-detail-label">Cash impact (6 months)</span>
+          <span class="scenario-detail-value" style="color:var(--color-error);">−$30,000</span>
+        </div>
+        <div class="scenario-detail">
+          <span class="scenario-detail-label">Runway impact</span>
+          <span class="scenario-detail-value" style="color:var(--color-error);">−0.4 months</span>
+        </div>
+      </div>
+      <div class="scenario-toggle">
+        <div class="toggle-switch" data-toggle="draw" tabindex="0" role="switch" aria-checked="false" aria-label="Toggle owner draw scenario"></div>
+        <span class="toggle-label">Show impact on outlook</span>
+      </div>
+      <div class="scenario-impact" id="impact-draw">
+        <div class="impact-title">6-Month Cash Impact</div>
+        <div class="impact-bar-wrap">
+          <div class="impact-bar"><div class="impact-bar-fill" style="width:50%;background:var(--color-error);"></div></div>
+          <div class="impact-value" style="color:var(--color-error);">$118K</div>
+        </div>
+        <p style="font-size:12px;color:var(--color-text-tertiary);margin-top:var(--space-2);">Current draw is already above pace for the year. Increasing now would reduce cash runway to 2.3 months — below the recommended 2.5-month safety margin. Revisit after Westfield closes out.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     FOOTER / SUPPORTING CONTENT
+     ========================================== -->
+<footer class="dashboard-footer" style="border-top:none;margin-top:var(--space-4);padding-top:0;">
+  <div class="fs-brand">
+    <strong>FS Finance</strong> — Strategic finance advisory for business owners who want to grow with confidence.
+  </div>
+</footer>
+
+</div>
+
+<!-- ==========================================
+     JAVASCRIPT
+     ========================================== -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  // ---- Chart.js global defaults ----
+  Chart.defaults.font.family = "'General Sans', 'Helvetica Neue', sans-serif";
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = '#8E919C';
+  Chart.defaults.plugins.legend.display = false;
+  Chart.defaults.elements.point.radius = 0;
+  Chart.defaults.elements.point.hoverRadius = 5;
+  Chart.defaults.elements.line.tension = 0.35;
+  Chart.defaults.scale.grid = { color: 'rgba(0,0,0,0.04)', drawBorder: false };
+  Chart.defaults.scale.border = { display: false };
+
+  // ---- DATA ----
+  const months12 = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+  const revenue12 = [195,210,228,242,235,256,248,220,265,275,290,310];
+  const margin12 = [26.8,27.1,27.5,26.2,25.8,25.5,26.0,24.8,25.2,25.4,24.9,25.0];
+
+  const cfMonths = ['Apr','May','Jun','Jul','Aug','Sep'];
+  const cfInflows = [310,295,340,380,320,350];
+  const cfOutflows = [275,260,310,330,290,295];
+  const cfNet = [412,447,477,527,557,612];
+
+  // ---- TREND CHART ----
+  const trendCtx = document.getElementById('trendChart').getContext('2d');
+  let trendChart = new Chart(trendCtx, {
+    type: 'bar',
+    data: {
+      labels: months12,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Revenue ($K)',
+          data: revenue12,
+          backgroundColor: '#1B2541',
+          borderRadius: 4,
+          barPercentage: 0.55,
+          yAxisID: 'y',
+          order: 2
+        },
+        {
+          type: 'line',
+          label: 'Gross Margin %',
+          data: margin12,
+          borderColor: '#C69B3E',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#C69B3E',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointHoverRadius: 6,
+          yAxisID: 'y1',
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'end',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'rectRounded',
+            padding: 16,
+            font: { size: 11, weight: '500' }
+          }
+        },
+        tooltip: {
+          backgroundColor: '#1B2541',
+          titleFont: { family: "'General Sans'", weight: '600', size: 13 },
+          bodyFont: { family: "'General Sans'", size: 12 },
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(ctx) {
+              if (ctx.dataset.type === 'bar' || !ctx.dataset.type) return ' Revenue: $' + ctx.parsed.y + 'K';
+              return ' Gross Margin: ' + ctx.parsed.y.toFixed(1) + '%';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          position: 'left',
+          title: { display: true, text: 'Revenue ($K)', font: { size: 11, weight: '500' } },
+          ticks: { callback: v => '$' + v + 'K' },
+          min: 100,
+          max: 380,
+          beginAtZero: false
+        },
+        y1: {
+          position: 'right',
+          title: { display: true, text: 'Margin %', font: { size: 11, weight: '500' } },
+          ticks: { callback: v => v + '%' },
+          min: 22,
+          max: 30,
+          grid: { display: false }
+        },
+        x: {
+          ticks: { font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  // ---- TIME TOGGLE ----
+  document.querySelectorAll('.time-toggle').forEach(toggle => {
+    toggle.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const range = parseInt(btn.dataset.range);
+        const startIdx = 12 - range;
+        trendChart.data.labels = months12.slice(startIdx);
+        trendChart.data.datasets[0].data = revenue12.slice(startIdx);
+        trendChart.data.datasets[1].data = margin12.slice(startIdx);
+        trendChart.update('active');
+      });
+    });
+  });
+
+  // ---- CASH FLOW CHART ----
+  const cfCtx = document.getElementById('cashflowChart').getContext('2d');
+  let cashflowChart = new Chart(cfCtx, {
+    type: 'bar',
+    data: {
+      labels: cfMonths,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Cash In',
+          data: cfInflows,
+          backgroundColor: 'rgba(27,37,65,0.85)',
+          borderRadius: 4,
+          barPercentage: 0.35,
+          categoryPercentage: 0.7,
+          order: 2
+        },
+        {
+          type: 'bar',
+          label: 'Cash Out',
+          data: cfOutflows,
+          backgroundColor: 'rgba(198,155,62,0.65)',
+          borderRadius: 4,
+          barPercentage: 0.35,
+          categoryPercentage: 0.7,
+          order: 2
+        },
+        {
+          type: 'line',
+          label: 'Running Cash Balance',
+          data: cfNet,
+          borderColor: '#2D8A4E',
+          borderWidth: 2.5,
+          borderDash: [],
+          pointBackgroundColor: '#2D8A4E',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          yAxisID: 'y1',
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'end',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'rectRounded',
+            padding: 16,
+            font: { size: 11, weight: '500' }
+          }
+        },
+        tooltip: {
+          backgroundColor: '#1B2541',
+          titleFont: { family: "'General Sans'", weight: '600', size: 13 },
+          bodyFont: { family: "'General Sans'", size: 12 },
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(ctx) {
+              return ' ' + ctx.dataset.label + ': $' + ctx.parsed.y + 'K';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          position: 'left',
+          title: { display: true, text: 'Monthly Flow ($K)', font: { size: 11, weight: '500' } },
+          ticks: { callback: v => '$' + v + 'K' },
+          beginAtZero: true,
+          max: 450
+        },
+        y1: {
+          position: 'right',
+          title: { display: true, text: 'Cash Balance ($K)', font: { size: 11, weight: '500' } },
+          ticks: { callback: v => '$' + v + 'K' },
+          min: 300,
+          max: 700,
+          grid: { display: false }
+        },
+        x: {
+          ticks: { font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  // ---- SCENARIO TOGGLES ----
+  const scenarioData = {
+    truck: { cashDelta: -9900, newOutlook: 550 },
+    hire: { cashDelta: -55200, newOutlook: 505 },
+    draw: { cashDelta: -30000, newOutlook: 530 }
+  };
+
+  document.querySelectorAll('.toggle-switch').forEach(toggle => {
+    function handleToggle() {
+      const scenario = toggle.dataset.toggle;
+      const impact = document.getElementById('impact-' + scenario);
+      const isActive = toggle.classList.toggle('active');
+      toggle.setAttribute('aria-checked', isActive);
+      if (isActive) {
+        impact.classList.add('visible');
+      } else {
+        impact.classList.remove('visible');
+      }
+    }
+    toggle.addEventListener('click', handleToggle);
+    toggle.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleToggle();
+      }
+    });
+  });
+
+  // ---- ANIMATE SCORE RING on load ----
+  const fg = document.querySelector('.score-ring .fg');
+  if (fg) {
+    const circumference = 2 * Math.PI * 40; // ~251
+    const score = 85;
+    const offset = circumference * (1 - score / 100);
+    fg.style.strokeDasharray = circumference;
+    fg.style.strokeDashoffset = circumference;
+    setTimeout(() => { fg.style.strokeDashoffset = offset; }, 100);
+  }
+
+});
+</script>
+</body>
+</html>
